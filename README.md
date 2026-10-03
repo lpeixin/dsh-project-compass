@@ -1,0 +1,2 @@
+# dsh-project-compass
+An AI-powered DSH plugin for codebase analysis, developer onboarding, and project-level Q&amp;A. 项目罗盘 / Project Compass — DSH 插件，通过 AST、依赖图、RAG 和 LLM 分析代码库，自动生成架构、模块、调用链与上手指南，并提供项目级 AI Q&amp;A，帮助开发者快速理解和接手项目。 
