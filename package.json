@@ -1,0 +1,53 @@
+{
+  "name": "dsh-project-compass",
+  "version": "0.1.0",
+  "description": "DeepSeek Harness bundle: 项目罗盘 / Project Compass — 读取现有项目、解析多语言代码、构建统一 IR 与依赖知识图谱，生成带证据引用的上手报告（ONBOARDING / ARCHITECTURE / MODULE_MAP / KEY_FLOWS / GETTING_STARTED），并提供项目级带引用问答。",
+  "type": "module",
+  "license": "MIT",
+  "author": "lpeixin",
+  "icon": "assets/icon.svg",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "assets",
+    "docs",
+    "scripts",
+    "cordis.patch.yml",
+    "README.md",
+    "README.zh-CN.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20.11"
+  },
+  "scripts": {
+    "test": "node --test",
+    "coverage": "node --test --experimental-test-coverage",
+    "smoke": "node scripts/compass-cli.mjs status .",
+    "analyze:self": "node scripts/compass-cli.mjs analyze ."
+  },
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "cordis",
+    "plugin",
+    "onboarding",
+    "codebase-analysis",
+    "architecture",
+    "dependency-graph",
+    "rag",
+    "project-compass"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  }
+}

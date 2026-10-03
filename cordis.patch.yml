@@ -1,0 +1,14 @@
+# Bundle patch for dsh-project-compass.
+#
+# 一个 insert 行挂在 profile 根上，按 id 寻址，因此用户自己的 cordis.patch.yml
+# 之后可以重新配置或直接关掉它：
+#
+#   - id: project-compass
+#     disabled: true
+#
+# 插件零外部 import（只用 Node 内置模块），所以不需要 dependencies 行，
+# 也不会因为无关包缺失而拖垮组合。
+
+- insert:
+    - id: project-compass
+      name: 'dsh-project-compass'

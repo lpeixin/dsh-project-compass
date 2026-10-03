@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" role="img" aria-label="Project Compass">
+  <title>Project Compass</title>
+  <desc>项目罗盘：深色罗盘盘面上指向东北的指针，代表为陌生项目定位方向。</desc>
+
+  <!-- 盘面（深色底） -->
+  <circle cx="64" cy="64" r="62" fill="#1B2430"/>
+
+  <!-- 浅色表盘 -->
+  <circle cx="64" cy="64" r="49" fill="#F5F7FA"/>
+
+  <!-- 方向刻度：N / E / S / W -->
+  <g stroke="#1B2430" stroke-width="3" stroke-linecap="round" opacity="0.35">
+    <line x1="64" y1="20" x2="64" y2="33"/>
+    <line x1="108" y1="64" x2="95" y2="64"/>
+    <line x1="64" y1="108" x2="64" y2="95"/>
+    <line x1="20" y1="64" x2="33" y2="64"/>
+  </g>
+
+  <!-- 内圈 -->
+  <circle cx="64" cy="64" r="36" fill="none" stroke="#1B2430" stroke-width="3" opacity="0.16"/>
+
+  <!-- 指针：指向东北（北 = 主色，南 = 深色） -->
+  <g>
+    <polygon points="88,40 72,68 60,60" fill="#2F6FED"/>
+    <polygon points="40,88 56,60 68,68" fill="#1B2430"/>
+  </g>
+
+  <!-- 轴心 -->
+  <circle cx="64" cy="64" r="9" fill="#1B2430"/>
+  <circle cx="64" cy="64" r="4" fill="#F5F7FA"/>
+</svg>

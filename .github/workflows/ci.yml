@@ -1,0 +1,104 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['20', '22']
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+
+      # The plugin must stay dependency-free, so there is no install step.
+      - name: Syntax-check existing modules
+        run: |
+          set -euo pipefail
+          files=$(find lib scripts test -name '*.js' -o -name '*.mjs' 2>/dev/null | sort || true)
+          if [ -z "$files" ]; then
+            echo "no modules yet — nothing to syntax-check"
+            exit 0
+          fi
+          echo "$files" | xargs -n1 node --check
+
+      - name: Unit tests
+        run: node --test
+
+      - name: Assert the bundle manifest is installable
+        run: |
+          node -e '
+          const pkg = require("./package.json");
+          const assert = require("node:assert/strict");
+          assert.equal(pkg.type, "module", "the plugin must be ESM");
+          assert.ok(pkg.dsh && pkg.dsh.bundle && pkg.dsh.bundle.patch, "dsh.bundle.patch is required for installability");
+          assert.ok(pkg.exports && pkg.exports["."], "the plugin entry must be exported");
+          assert.deepEqual(pkg.dependencies || {}, {}, "the plugin must stay dependency-free");
+          console.log("manifest OK:", pkg.name, pkg.version);
+          '
+
+      - name: Assert the cordis patch row is well formed
+        run: |
+          node -e '
+          const fs = require("node:fs");
+          const text = fs.readFileSync("cordis.patch.yml", "utf8");
+          if (!/^-\s*insert:/m.test(text)) throw new Error("cordis.patch.yml must contain a top-level insert row");
+          if (!/id:\s*project-compass/.test(text)) throw new Error("the inserted row must keep the stable id project-compass");
+          console.log("patch OK");
+          '
+
+      - name: Assert no default export and no external imports
+        run: |
+          node -e '
+          const fs = require("node:fs");
+          const path = require("node:path");
+          const files = [];
+          const walk = (dir) => {
+            if (!fs.existsSync(dir)) return;
+            for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+              const full = path.join(dir, entry.name);
+              if (entry.isDirectory()) walk(full);
+              else if (/[.](js|mjs)$/.test(entry.name)) files.push(full);
+            }
+          };
+          walk("lib");
+          if (files.length === 0) { console.log("no lib modules yet"); process.exit(0); }
+          const patterns = [
+            /^[ \t]*import[ \t]+[\x27"]([^\x27"\n]+)[\x27"]/,
+            /^[ \t]*export[ \t]+[^\n]*?from[ \t]+[\x27"]([^\x27"\n]+)[\x27"]/,
+            /^[ \t]*import[ \t][^\n]*?from[ \t]+[\x27"]([^\x27"\n]+)[\x27"]/,
+            /^[ \t]*(?:const|let|var)[ \t]+[^\n=]*=[ \t]*require\([ \t]*[\x27"]([^\x27"\n]+)[\x27"]/,
+            /^[ \t]*require\([ \t]*[\x27"]([^\x27"\n]+)[\x27"]/
+          ];
+          const problems = [];
+          for (const file of files) {
+            const text = fs.readFileSync(file, "utf8");
+            if (/^[ \t]*export[ \t]+default\b/m.test(text)) problems.push(file + ": export default is not allowed");
+            text.split("\n").forEach((line, index) => {
+              const trimmed = line.trim();
+              if (trimmed.startsWith("//") || trimmed.startsWith("*") || trimmed.startsWith("/*")) return;
+              for (const pattern of patterns) {
+                const match = pattern.exec(line);
+                if (!match) continue;
+                const spec = match[1];
+                if (spec.startsWith(".") || spec.startsWith("node:")) continue;
+                problems.push(file + ":" + (index + 1) + ": external import " + spec);
+              }
+            });
+          }
+          if (problems.length > 0) { console.error(problems.join("\n")); process.exit(1); }
+          console.log("checked", files.length, "modules: no default exports, no external imports");
+          '

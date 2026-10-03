@@ -1,0 +1,99 @@
+# ---- Node / package managers -------------------------------------------------
+node_modules/
+.pnpm-store/
+.pnpm-debug.log*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm/
+.yarn/
+*.tsbuildinfo
+
+# ---- Build output ------------------------------------------------------------
+dist/
+build/
+out/
+coverage/
+.nyc_output/
+*.lcov
+
+# Packaging artifacts (`npm pack` / `npm publish` produce these locally)
+*.tgz
+*.tar.gz
+
+# ---- Project Compass generated output -----------------------------------------
+# Both paths below are *generated*, never hand-edited:
+#
+#   .project-compass/       per-machine derived state: scan snapshot, IR, parse
+#                           cache, search index, run state, QA log. Fully
+#                           rebuildable, and it embeds the absolute project root
+#                           (i.e. your local filesystem layout).
+#   docs/project-compass/   the six human-facing artifacts this plugin writes
+#                           into whatever project it analyses.
+#
+# This repository ignores its own output on purpose: generated reports go stale
+# the moment the code changes, weigh ~0.5 MB, and are trivially reproducible.
+# Regenerate them any time with:
+#
+#   node scripts/compass-cli.mjs analyze . && node scripts/compass-cli.mjs report .
+#
+# Users who *want* to version the reports of their own project can simply drop
+# the second line below (or run the plugin with a different `outputDir`).
+.project-compass/
+docs/project-compass/
+
+# ---- OS metadata -------------------------------------------------------------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# ---- Editors / IDEs ----------------------------------------------------------
+.idea/
+*.iml
+.vscode/*
+!.vscode/extensions.json
+.history/
+*.swp
+*.swo
+*~
+
+# ---- Local secrets and environment -------------------------------------------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+credentials.json
+secrets.json
+
+# ---- Tooling caches ----------------------------------------------------------
+.eslintcache
+.stylelintcache
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
+__pycache__/
+*.py[cod]
+.tox/
+.venv/
+venv/
+
+# ---- Patch / merge leftovers -------------------------------------------------
+*.orig
+*.rej
+*.bak
+
+# ---- Test / debug scratch ----------------------------------------------------
+*.log
+logs/
+tmp/
+temp/
+.cache/
+# Atomic writes use `<target>.<pid>.<ts>.tmp`; a crashed run can leave one behind
+*.tmp
