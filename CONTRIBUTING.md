@@ -167,7 +167,7 @@ node --test test/parse.test.js                # 单个文件
 ## 提交前自检
 
 ```bash
-node --test                                                          # 1. 测试全绿
+node --test                                                          # 1. 测试全绿（含下文第 7 条：文档 Mermaid 守卫）
 node --check lib/<你改的文件>.js                                      # 2. 语法检查
 node scripts/compass-cli.mjs analyze <一个真实项目>                    # 3. 真实项目冒烟
 node scripts/compass-cli.mjs report  <一个真实项目>                    # 4. 产物能生成
@@ -177,12 +177,17 @@ grep -rnE "from '[^.]|require\('[^.]" lib/ | grep -v "node:"          # 6. 没�
 
 第 6 条的输出应当只有 `node:*` 相关的行（或为空）。有输出就说明引入了依赖。
 
+第 7 条在 `node --test` 里自动执行：`test/docs-mermaid.test.js` 会扫描仓库内所有 `*.md`
+的 Mermaid 块，检查节点 id 是否撞了保留字、`subgraph`/`end` 是否配对、围栏是否闭合。
+改了任何带图的文档都必须让这条保持绿色。
+
 再自查一遍：
 
 - [ ] 没有新增外部依赖（`package.json` 的 `dependencies` 必须保持为空）；
 - [ ] 没有 `export default`；
 - [ ] 新增/修改的接口与契约一致；若改了契约，契约文件也在本次 PR 里；
 - [ ] 涉及用户可见行为的变化，同步更新了 `README.md` / `docs/*.md` / `CHANGELOG.md`；
+- [ ] 改了带 Mermaid 图的文档后，`test/docs-mermaid.test.js` 仍然通过；
 - [ ] 没有把真实项目的产物（`.project-compass/`）或本地路径提交进去。
 
 ---
@@ -241,7 +246,8 @@ grep -rnE "from '[^.]|require\('[^.]" lib/ | grep -v "node:"          # 6. 没�
 | **命令必须可执行** | 文档里的每条命令都要在本仓库或任意真实项目上真的能跑（占位符用 `<项目路径>` 这类明确标记） |
 | **不改契约措辞** | 接口形状以 `INTERNAL-CONTRACTS.md` 为准，不要在其他文档里另立一套说法 |
 | **示例要标注** | 示意性的产物摘录必须明确标注"示意"，不能让读者以为是真实输出 |
-| **两份 README 不打架** | `README.md` 是中文全文（唯一真相），`README.zh-CN.md` 是英文摘要并指回前者；改一份要检查另一份是否需要同步 |
+| **Mermaid 节点 id 不用裸模块名** | flowchart 里 `graph`、`end`、`class`、`style`、`click`、`subgraph` 等都是保留字，直接当节点 id（如 `graph["graph.js"]`）会让 Typora 等阅读器整张图报错。改用 `graphjs` / `g_graph` 这类 id，**显示文本仍写 `graph.js`**；改名时连**边引用**（`a --> graph`、`x & graph & y`）一起改。`test/docs-mermaid.test.js` 会扫全仓 Markdown 拦截这类问题 |
+| **两份 README 不打架** | `README.md` 是**英文全文（默认语言）**，`README.zh-CN.md` 是**中文全文**，两版顶部互相切换；改一份必须同步另一版，事实不得分歧 |
 | **术语一致** | 统一用「项目罗盘 / Project Compass」「证据引用」「未验证」「增量」等既有术语 |
 
 ---

@@ -6,6 +6,17 @@
 
 ## [Unreleased]
 
+### 已修复
+
+- **文档里的 Mermaid 图在 Typora 等阅读器中渲染失败**：`docs/ARCHITECTURE.md` 的「分层总览」
+  用 `graph` 作为节点 id，而 `graph` 是 Mermaid flowchart 的图类型关键字；解析到
+  `graph["graph.js"]` 时报 `got 'GRAPH'`，整张图无法渲染。现改为 `graphjs`（显示文本仍是
+  `graph.js`），并把 3 处边引用一并改名。插件**生成**的报告不受影响——生成器一律用
+  `n0…nN` 做 id，文件名只出现在带引号的标签里。
+- **新增文档 Mermaid 守卫**：`test/docs-mermaid.test.js` 扫描仓库内所有 `*.md` 的 Mermaid 块，
+  拦截保留字节点 id、`subgraph`/`end` 不配对、围栏未闭合；测试自带反例，确保守卫真的会失败。
+  `CONTRIBUTING.md` 同步补了对应的写作规则与自检项。
+
 ### 计划中
 
 - **路径别名解析**：读 `tsconfig.json` / `jsconfig.json` 的 `paths`、webpack / vite alias，
