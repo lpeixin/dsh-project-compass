@@ -64,7 +64,7 @@ flowchart TB
     analyze["analyze.js"]
     ir["ir.js"]
     cache["cache.js"]
-    graph["graph.js"]
+    graphjs["graph.js"]
     flows["flows.js"]
   end
 
@@ -88,9 +88,9 @@ flowchart TB
   pipeline --> rag
   scan --> parse
   scan --> ir
-  ir --> cache & parse & graph & flows
-  graph --> util
-  flows --> graph
+  ir --> cache & parse & graphjs & flows
+  graphjs --> util
+  flows --> graphjs
   chunk --> ir
   rag --> chunk
   rag --> embed

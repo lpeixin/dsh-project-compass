@@ -25,6 +25,7 @@ node --test            # 全量单元测试 + 端到端验收，必须全绿
 | `test/insights.test.js` | 洞察与 LLM 叙事：确定性阅读顺序与风险汇总、事实简报长度约束、LLM 各降级路径、**验证器丢弃后的 module/claim 对齐**、阅读顺序同样过验证器 | 假 LLM 客户端，不出网 |
 | `test/plugin.test.js` | 插件入口：导出形状（无 default、有 inject）、`apply` 注册与**逆序卸载**、注册失败隔离、可选服务缺失时的降级、每个工具的 schema 完整性、**工具返回值满足 output.schema 必需字段**、`/compass` 命令分支 | 假 ctx，不需要宿主 |
 | `test/selfcheck.test.js` | **自扫描守卫**：用独立于解析器的逐行正则探针读出"源码里确实导出了哪些名字"，再断言解析器把它们全抽出来；另含"尾部成片丢符号"与"符号行号可反查"两条 | 探针与实现完全无关，因此两者不一致时必然是其中一方错了 |
+| `test/docs-mermaid.test.js` | **文档 Mermaid 守卫**：扫描仓库内所有 `*.md` 的 Mermaid 块，拦截"节点 id 撞保留字（`graph`/`end`/`class`/`style`/`click`/`subgraph`）"、"`subgraph`/`end` 不配对"、"围栏未闭合"；**自带反例**证明会失败 | 起因是 issue：`docs/ARCHITECTURE.md` 用 `graph` 当节点 id，Typora 报 `got 'GRAPH'` 整图不渲染 |
 | `test/e2e.test.js` | 端到端：在临时目录造一个含 Express 路由、跨文件调用、测试、README、`.env`、Dockerfile、CI 的真实感项目，跑 扫描 → 解析 → IR → 图 → 流程 → 报告 → 索引 → 问答 → 增量更新，并校验**产物不被下一轮分析吃进去**、工具返回值是无损 JSON、非法入参不产生半成品 | 唯一的"整机"验收 |
 
 ---
