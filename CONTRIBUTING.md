@@ -100,6 +100,32 @@ const text = await readTextFile(target)  // ❌ 若该路径已判定为敏感
 
 ---
 
+## 工具 schema 的宿主约束
+
+`output.schema` 不是"写给人看的文档"，宿主会拿它**校验每一个工具返回值**，校验不过整次调用即失败
+（`INVALID_TOOL_OUTPUT`）。宿主的校验语义是固定的，写 schema 时必须按它来：
+
+| 约束 | 说明 |
+|---|---|
+| **`type` 只能是单个字符串** | `type: ['object','null']` 这种写法宿主不支持（会走进 `assertNever` 抛错）。可空必须写 `oneOf` |
+| **`type: 'object'` 只接受纯对象** | `null` 和**数组**都不算 object。字段实际是数组就写 `type: 'array'`，可能为 null 就用 `oneOf` |
+| **可空字段用 `oneOf`** | `{ oneOf: [{ type: 'object' }, { type: 'null' }] }`；本仓库的自由形态字段用 `loose()`（object / array / null 三选一） |
+| **`additionalProperties: false` 会拒绝未声明字段** | 返回值里出现的每个 key 都必须出现在 `properties` 里；**新增返回值字段时必须同步声明** |
+| **`required` 只查"缺失或 undefined"** | 值为 `null` 能通过 `required`，但会被 `type` 拦下——所以"可空"必须由 `oneOf` 表达，不能只靠 required |
+| **`array` 的 `items` 可省略** | 省略时宿主只校验"是不是数组"，不校验元素 |
+
+改了任何 `output.schema` 或工具返回值，都必须跑：
+
+```bash
+node --test test/output-schema.test.js
+```
+
+这个测试按**宿主语义**校验"每个工具 × 每种状态/开关"的返回值，并自带反例——
+它曾经抓出过一次真实线上缺陷：`status` 返回 `ir: null`、`analyze` 返回数组字段，
+却被声明成 `{ type: 'object' }`，导致发布版里 4 个工具一调用就被宿主拒绝。
+
+---
+
 ## 动手之前：先读契约
 
 [`docs/INTERNAL-CONTRACTS.md`](docs/INTERNAL-CONTRACTS.md) 是**并行开发的唯一接口真相**。
@@ -188,6 +214,7 @@ grep -rnE "from '[^.]|require\('[^.]" lib/ | grep -v "node:"          # 6. 没�
 - [ ] 新增/修改的接口与契约一致；若改了契约，契约文件也在本次 PR 里；
 - [ ] 涉及用户可见行为的变化，同步更新了 `README.md` / `docs/*.md` / `CHANGELOG.md`；
 - [ ] 改了带 Mermaid 图的文档后，`test/docs-mermaid.test.js` 仍然通过；
+- [ ] 改了工具返回值或 `output.schema` 后，`test/output-schema.test.js` 仍然通过；
 - [ ] 没有把真实项目的产物（`.project-compass/`）或本地路径提交进去。
 
 ---
