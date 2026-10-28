@@ -16,7 +16,7 @@ import test from 'node:test'
 
 import * as plugin from '../lib/index.js'
 import { createToolDefinitions } from '../lib/tools.js'
-import { SKILL_NAME } from '../lib/version.js'
+import { PACKAGE_NAME, SKILL_NAME, VERSION } from '../lib/version.js'
 
 /** 造一个记录注册行为的假宿主上下文。 */
 function fakeContext() {
@@ -81,6 +81,13 @@ test('plugin：导出形状符合宿主 Loader 要求（命名导出、无 defau
   assert.equal(typeof plugin.apply, 'function')
   assert.ok(!Object.keys(plugin).includes('default'), '导出 default 会让 Loader 折叠模块并丢掉 inject')
   assert.equal(plugin.default, undefined)
+})
+
+test('plugin：代码里的版本/包名与 package.json 一致（防止发版时漂移）', async () => {
+  const { readFile } = await import('node:fs/promises')
+  const pkg = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8'))
+  assert.equal(VERSION, pkg.version, 'lib/version.js 的 VERSION 必须与 package.json 的 version 一致')
+  assert.equal(PACKAGE_NAME, pkg.name, 'PACKAGE_NAME 必须与 package.json 的 name 一致')
 })
 
 test('plugin：cordis.patch.yml 的 id 与 name 能和入口对上', async () => {

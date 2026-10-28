@@ -16,6 +16,32 @@
 - **新增文档 Mermaid 守卫**：`test/docs-mermaid.test.js` 扫描仓库内所有 `*.md` 的 Mermaid 块，
   拦截保留字节点 id、`subgraph`/`end` 不配对、围栏未闭合；测试自带反例，确保守卫真的会失败。
   `CONTRIBUTING.md` 同步补了对应的写作规则与自检项。
+- **工具输出被宿主拒绝（`INVALID_TOOL_OUTPUT`）**：`project_compass_status` 在项目
+  **尚未分析**时返回 `ir: null` / `index: null`，而 `output.schema` 把它们声明为
+  `{ type: 'object' }`；宿主校验器把 `object` 实现为"纯对象"，`null` 与**数组**都会被拒
+  （`isPlainJsonRecord` 同时排除二者）。同类问题共 **12 处**，且不止 null：
+
+  | 工具 | 违规 | 触发条件 |
+  | --- | --- | --- |
+  | `status` | `ir`、`index` 为 null | 未分析时（正是首次安装的场景） |
+  | `analyze` | `modules`、`flows` 是数组；`changes` 未声明 | 每次调用 |
+  | `report` | `roleRoutes` 未声明；`index` 为 null | 每次调用 / `withIndex:false` |
+  | `ask` | `citations`、`relatedSymbols`、`relatedFlows` 是数组 | 每次调用 |
+  | `update` | `reports`、`index` 为 null | `withReport:false` / `withIndex:false` |
+
+  修复方式：`loose()` 改为 `oneOf: [{ type: 'object' }, { type: 'array' }, { type: 'null' }]`
+  （宿主只接受单值 `type`，可空只能用 `oneOf`），并补声明 `analyze.changes` 与
+  `report.roleRoutes`。发布版里 `analyze`/`report`/`ask` 之前**每次调用都会被宿主拒绝**。
+
+- **新增工具 schema 一致性守卫**：`test/output-schema.test.js` 按宿主校验语义
+  （单值 `type`、`oneOf`、`additionalProperties: false`、`required` 只查 undefined）
+  校验"每个工具 × 每种状态/开关"的返回值，并静态检查 schema 关键字；自带反例。
+  `CONTRIBUTING.md` 增加「工具 schema 的宿主约束」一节与自检项。
+
+- **版本号漂移**：`lib/version.js` 的 `VERSION` 仍是 `0.1.0`，而 `package.json` 已是
+  `0.1.1`，导致报告元信息与 `state.json` 的 `toolVersion` 显示错误版本。现同步为 `0.1.1`，
+  并在 `test/plugin.test.js` 增加断言（`VERSION`/`PACKAGE_NAME` 必须与 `package.json` 一致），
+  避免发版时再次漂移。
 
 ### 计划中
 
